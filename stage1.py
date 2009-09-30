@@ -3,7 +3,7 @@
 import pygame, sys, os
 from pygame.locals import *
 import app
-
+import main
 class Base(object):
     def __init__(self, image, x, y, speed):
         print "base init"
@@ -27,15 +27,13 @@ class Player(Base):
         Base.__init__(self, image, x, y, speed)
         self.soul = 0
 
-def main():
-    SCREEN_SIZE = (460, 320) # screen size set
-    
+def main(screen):
     #pygame init
-    pygame.init()
-    
-    #screen seting
-    screen = pygame.display.set_mode(SCREEN_SIZE, 0, 32)
-    
+    pygame.init()    
+
+    #?
+    move_x, move_y = 0, 0
+
     #player, background image load set
     player_image = app.load_image("player.bmp").convert_alpha()
     stage_image = app.load_image("background.png").convert_alpha()
@@ -44,15 +42,14 @@ def main():
     player = Player(player_image, 0, 0, 1)
     stage_1 = Stage(stage_image, 0, 0, 1)
     
-    #title set
-    pygame.display.set_caption('Rabit Hazard')
+
 
     while 1:
         stage_1.render(screen)
         player.render(screen)
         for event in pygame.event.get():
-            print event
             if event.type == QUIT:
+                pygame.quit()
                 sys.exit()
             if event.type == KEYDOWN:
                 if event.key == K_LEFT:
