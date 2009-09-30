@@ -2,8 +2,12 @@
 
 import pygame, sys,os
 from pygame.locals import * 
-import app
+import app, input
+import stage1
 
+
+#stage = ["title", "main", "stage1"]
+stage = 3
 
 def main():
     # Start up pygame/make screen
@@ -11,21 +15,14 @@ def main():
     window = pygame.display.set_mode((460, 320)) 
     screen = pygame.display.get_surface() 
     pygame.display.set_caption('Rabit Hazard') 
-    # make background
-    background = app.load_image("player.bmp", -1)
-    # blit background on to the screen
-    screen.blit(background, (0,0))
-    pygame.display.flip()
-
-    # load fonts
-    
-    # make the text needed
-
-
+    # sprite image
+    print 'Stage number is', stage
+    if stage == 3:
+        stage1.main(screen)
 
 if __name__ == '__main__':
     main()
  
-while True: 
-   app.input(pygame.event.get()) 
+while True:
+    input.action()
 

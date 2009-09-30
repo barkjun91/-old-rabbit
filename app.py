@@ -11,6 +11,7 @@ def load_image(name, colorkey=None):
     except pygame.error, message:
         print 'Cannot load image:', name
         raise SystemExit, message
+    image = image.convert()
     if colorkey is not None:
         if colorkey is -1:
             colorkey = image.get_at((0,0))
@@ -18,12 +19,5 @@ def load_image(name, colorkey=None):
     return image
 
  
-def input(events): 
-   for event in events: 
-      if event.type == QUIT: 
-         sys.exit(0) 
-      elif event.type == KEYDOWN: 
-         print event 
-      else:
-         print 'asdf'
+
 
