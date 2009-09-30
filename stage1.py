@@ -1,58 +1,72 @@
 # -*- coding:utf-8 -
 
-SCREEN_SIZE = (460, 320)
-PLAYER_X=0
-PLAYER_Y=250
 import pygame, sys, os
 from pygame.locals import *
 import app
 
 class Base(object):
-    def __init__(self, image):
+    def __init__(self, image, x, y, speed):
         print "base init"
         self.image = image
-    def render(self, surface, x, y):
-        surface.blit(self.image, (x,y))
+        self.pos_x = x
+        self.pos_y = y
+        self.speed = speed
+
+    def render(self, surface):
+        surface.blit(self.image, (self.pos_x,self.pos_y))
+    
 
 class Stage(Base):
-    def __init__(self, image):
-        Base.__init__(self, image)
+    def __init__(self, image, x, y, speed):
+        print "Stage init"
+        Base.__init__(self, image, x, y, speed)
 
 class Player(Base):
-    def __init__(self, image):
+    def __init__(self, image, x, y, speed):
         print "player init"
-        Base.__init__(self, image)
+        Base.__init__(self, image, x, y, speed)
+        self.soul = 0
 
 def main():
-    global PLAYER_X
-    global PLAYER_Y
-    move_x, move_y = 0, 0
+    SCREEN_SIZE = (460, 320) # screen size set
+    
+    #pygame init
     pygame.init()
+    
+    #screen seting
     screen = pygame.display.set_mode(SCREEN_SIZE, 0, 32)
+    
+    #player, background image load set
     player_image = app.load_image("player.bmp").convert_alpha()
     stage_image = app.load_image("background.png").convert_alpha()
-    player = Player(player_image)
-    stage = Stage(stage_image)
-    pygame.display.set_caption('Rabit Hazard') 
-    stage.render(screen, 0, 0)
+    
+    #player, background create
+    player = Player(player_image, 0, 0, 1)
+    stage_1 = Stage(stage_image, 0, 0, 1)
+    
+    #title set
+    pygame.display.set_caption('Rabit Hazard')
+
     while 1:
-        player.render(screen, PLAYER_X, PLAYER_Y)
+        stage_1.render(screen)
+        player.render(screen)
         for event in pygame.event.get():
             print event
             if event.type == QUIT:
                 sys.exit()
             if event.type == KEYDOWN:
-                if event.key == K_LEFT and not(event.key == K_RIGHT):
-                    move_x = -1
-                elif event.key == K_RIGHT and not(event.key == K_LEFT):
-                    move_x = +1
+                if event.key == K_LEFT:
+                    move_x = -player.speed
+                elif event.key == K_RIGHT:
+                    move_x = +player.speed
             elif event.type == KEYUP:
                 if event.key == K_LEFT:
                     move_x = 0
                 elif event.key == K_RIGHT:
                     move_x = 0
-        PLAYER_X+= move_x
-        PLAYER_Y-= move_y    
+
+        player.pos_x+= move_x
+        player.pos_y-= move_y    
 
         pygame.display.update()
 
