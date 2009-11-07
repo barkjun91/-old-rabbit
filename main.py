@@ -2,30 +2,15 @@
 
 import pygame, sys,os
 from pygame.locals import * 
-import app
 import stage1
 
 
 #stage = ["title", "main", "stage1"]
 stage = 1
 
-def load_image(name, colorkey=None):
-    fullname = os.path.join('data', name)
-    try:
-        image = pygame.image.load(fullname)
-    except pygame.error, message:
-        print 'Cannot load image:', name
-        raise SystemExit, message
-    image = image.convert()
-    if colorkey is not None:
-        if colorkey is -1:
-            colorkey = image.get_at((0,0))
-        image.set_colorkey(colorkey, RLEACCEL)
-    return image
-
 
 def main():
-    SCREEN_SIZE = (460, 320) # screen size set
+    SCREEN_SIZE = (800, 600) # screen size set
     # Start up pygame/make screen
     pygame.init() 
 
@@ -33,7 +18,7 @@ def main():
     screen = pygame.display.set_mode(SCREEN_SIZE, 0, 32)
     
     #title set
-    pygame.display.set_caption('Rabit Hazard') 
+    pygame.display.set_caption('Rabbit Hazard') 
     
     print 'Stage number is', stage
 
