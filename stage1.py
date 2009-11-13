@@ -61,10 +61,27 @@ class Player:
 	return ((-1.0/self.time_at_peak**2)*((elapsedTime-self.time_at_peak)**2)+1)*self.jump_height
 
     def attack(self, view, weapon):
-	if weapon == "gun":
-	    if self.we_lev == 1:
-	    	image_att = load_image("attack_"+weapon+".png").convert_alpha()
- 	    	view.blit(image_att, (self.pos_x, self.pos_y))	 
+	if self.we_lev == 1: #1단계
+	    image_att = load_image("attack_"+weapon+"_1.png").convert_alpha()
+ 	    view.blit(image_att, (self.pos_x, self.pos_y))
+
+	elif self.we_lev == 2: #2단계
+	    image_att = load_image("attack_"+weapon+"_2.png").convert_alpha()
+ 	    view.blit(image_att, (self.pos_x, self.pos_y))	
+
+	elif self.we_lev == 3: #3단계
+	    image_att = load_image("attack_"+weapon+"_3.png").convert_alpha()
+ 	    view.blit(image_att, (self.pos_x, self.pos_y))
+
+	elif self.we_lev == 4: #4단계
+	    image_att = load_image("attack_"+weapon+"_4.png").convert_alpha()
+ 	    view.blit(image_att, (self.pos_x, self.pos_y))
+
+	else:
+   	    image_att = load_image("attack_"+weapon+"_1.png").convert_alpha()
+ 	    view.blit(image_att, (self.pos_x, self.pos_y))
+    def skill(self, view, weapon):
+	print "스킬발동!"
 	
 
 def stage1_main(screen, weapon_type):
