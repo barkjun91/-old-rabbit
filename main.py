@@ -1,4 +1,4 @@
-# -*- coding:utf-8 -*-
+#-*- coding:utf-8 -*-
 
 import pygame, sys,os
 from pygame.locals import * 
@@ -22,9 +22,11 @@ def main():
     
     print 'Stage number is', stage
 
+    weapon_type = "gun"
+
     #call stage1.main
     if stage == 1:
-        stage1.stage1_main(screen)
+        stage1.stage1_main(screen, weapon_type)
 
 if __name__ == '__main__':
     main()

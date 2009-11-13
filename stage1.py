@@ -21,20 +21,20 @@ def load_image(name, colorkey=None):
         image.set_colorkey(colorkey, RLEACCEL)
     return image
 
-    
+#맵 불러들이기~ 
 class Map:
     def __init__(self, image, x, y, speed):
-        print "Map init"
         self.image = image
         self.pos_x = x
         self.pos_y = y
+	
         self.speed = speed
     def draw(self, view):
         view.blit(self.image, (self.pos_x,self.pos_y))
 
-
+#플레이어 로드!
 class Player:
-    def __init__(self, image, x, y, speed):
+    def __init__(self, image, x, y, speed, level):
         self.image = image
 
 	self.margin = 5
@@ -42,6 +42,8 @@ class Player:
 	self.horz_move = speed
 	self.time_at_peak = self.jumping_duration / 2
 	self.jump_height = 200
+
+	self.we_lev = level 
 
         self.pos_x = x
         self.pos_y = y
@@ -58,9 +60,14 @@ class Player:
     def jumpHeightAtTime(self, elapsedTime):
 	return ((-1.0/self.time_at_peak**2)*((elapsedTime-self.time_at_peak)**2)+1)*self.jump_height
 
+    def attack(self, view, weapon):
+	if weapon == "gun":
+	    if self.we_lev == 1:
+	    	image_att = load_image("attack_"+weapon+".png").convert_alpha()
+ 	    	view.blit(image_att, (self.pos_x, self.pos_y))	 
+	
 
-
-def stage1_main(screen):
+def stage1_main(screen, weapon_type):
     #pygame init
     pygame.init()    
 
@@ -69,7 +76,9 @@ def stage1_main(screen):
     map_image = load_image("background.png").convert_alpha()
     
     #player, background create
-    player = Player(player_image, x=0, y=400, speed=2)
+    	#플레이어 기본 이미지, 시작 좌표, 기본 이속, 기본 무기 레벨
+    player = Player(player_image, x=0, y=400, speed=2, level=1)
+	#맵 기본 이미지, 시작 좌표, 맵 이동속도
     stage_1 = Map(map_image, x=0, y=0, speed=1)
     
     jumping = False
@@ -77,21 +86,24 @@ def stage1_main(screen):
 
     while 1:
 
+        stage_1.draw(screen)
+
+
         for event in pygame.event.get():
             if event.type == QUIT:
                 pygame.quit()
                 sys.exit()
 	
 	keys = pygame.key.get_pressed()
-        
+        # 점프했을때 키보드 오른쪽 혹은 왼쪽 버튼을 눌렀는지 식별 
         def horzMoveAmt():
             ''' Amount of horizontal movement based on left/right arrow keys '''
             return (keys[K_RIGHT] - keys[K_LEFT]) * player.horz_move
 
+	# 점프 했나요?
         if not jumping:
             player.pos_x += horzMoveAmt()
             if keys[K_SPACE]:
-		print "jumpping!"
                 jumping = True
                 jumpingHorz = horzMoveAmt()
                 jumpingStart = pygame.time.get_ticks()
@@ -107,12 +119,17 @@ def stage1_main(screen):
             player.pos_y = player.floorY(screen) - jumpHeight
             player.pos_x += jumpingHorz
 
+	# 공격 했나요?
+	if keys[K_z]:
+	    player.attack(screen, weapon_type)
+	else:
+            player.draw(screen)
+
         if player.pos_x < 0:
             player.pos_x = 0
 
 
-        stage_1.draw(screen)
-        player.draw(screen)
+
         pygame.display.update()
 
     
