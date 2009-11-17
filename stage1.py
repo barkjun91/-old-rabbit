@@ -33,10 +33,12 @@ def load_image(name, colorkey=None):
 class Map:
     def __init__(self, map, tiles):
 	self.tiles = load_image(tiles)	
-	
+	self.width = 0
 	l = [line.strip() for line in open('data/stage1/' + map).readlines()]
 	self.map = [[None]*len(l[0]) for j in range(len(l))]
+	
 	for i in range(len(l[0])):
+	    self.width += 80
 	    for j in range(len(l)):
 		tile = l[j][i]
 		tile = tile_coords[tile]
@@ -57,7 +59,6 @@ class Map:
 		j = y/80 + by
 		try:
 		    tile = self.map[j][i]
-		    print tile
 		except IndexError:
 		    continue
 		if tile is None:
@@ -133,11 +134,12 @@ def stage1_main(screen, weapon_type):
     	#플레이어 기본 이미지, 시작 좌표, 기본 이속, 기본 무기 레벨
     player = Player(player_image, x=0, y=440, speed=2, level=1)
 	#맵 기본 이미지, 시작 좌표, 맵 이동속도
-    
+    x = 0 
     jumping = False
     jumpingHorz = 0
 
     while 1:
+	screen.fill((255,255,255))
         for event in pygame.event.get():
             if event.type == QUIT:
                 pygame.quit()
@@ -145,14 +147,16 @@ def stage1_main(screen, weapon_type):
 	
 	keys = pygame.key.get_pressed()
 
-        # 점프했을때 키보드 오른쪽 혹은 왼쪽 버튼을 눌렀는지 식별 
+	#좌우로 움직이기
         def horzMoveAmt():
             ''' Amount of horizontal movement based on left/right arrow keys '''
             return (keys[K_RIGHT] - keys[K_LEFT]) * player.horz_move
 
 	# 점프 했나요?
         if not jumping:
-            player.pos_x += horzMoveAmt()
+	    player.pos_x += horzMoveAmt()
+    	    x += horzMoveAmt()
+	    viewpos = (x, 0)
             if keys[K_SPACE]:
                 jumping = True
                 jumpingHorz = horzMoveAmt()
@@ -174,11 +178,14 @@ def stage1_main(screen, weapon_type):
 	else:
             player.draw(screen)
 
-        if player.pos_x < 0:
+        if player.pos_x < 0 and x < 0:
             player.pos_x = 0
+	    x = 0	
+	elif player.pos_x > 770 and x > 770:
+	    player.pos_x = 770
+	    x = 770
 
 	map.draw(screen, viewpos)
-	print " ---- "	
         pygame.display.update()
 
     
