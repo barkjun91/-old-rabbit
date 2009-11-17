@@ -1,10 +1,18 @@
 # -*- coding: utf-8 -*-
 
 import main
-import pygame, sys, os
+import pygame, sys, os, random
 from pygame.locals import *
 
 SCREEN_SIZE = (800, 600) # screen size set
+
+# define where to get the tile image form in the tiles source image
+tile_coords = {
+    'a': (0,0), # noraml_ground
+    'b': (80,0), # up_ground
+    'c': (160,0), # down_ground
+    '.': None,
+}
 
 #load image. where? = main/data/stage1/~
 def load_image(name, colorkey=None):
@@ -21,18 +29,42 @@ def load_image(name, colorkey=None):
         image.set_colorkey(colorkey, RLEACCEL)
     return image
 
-#맵 불러들이기~ 
+ 
 class Map:
-    def __init__(self, image, x, y, speed):
-        self.image = image
-        self.pos_x = x
-        self.pos_y = y
+    def __init__(self, map, tiles):
+	self.tiles = load_image(tiles)	
 	
-        self.speed = speed
-    def draw(self, view):
-        view.blit(self.image, (self.pos_x,self.pos_y))
+	l = [line.strip() for line in open('data/stage1/' + map).readlines()]
+	self.map = [[None]*len(l[0]) for j in range(len(l))]
+	for i in range(len(l[0])):
+	    for j in range(len(l)):
+		tile = l[j][i]
+		tile = tile_coords[tile]
+		if tile is None:
+		    continue
+                elif isinstance(tile, type([])):
+                    tile = random.choice(tile)
+		cx, cy = tile
+		self.map[j][i] = (cx, cy)
 
-#플레이어 로드!
+    def draw(self, view, viewpos):
+	sx, sy = view.get_size()
+	bx = viewpos[0]/80
+	by = viewpos[1]/80
+	for x in range(0, sx+80, 80):
+	    i = x/80 + bx
+	    for y in range(0, sy+80, 80):
+		j = y/80 + by
+		try:
+		    tile = self.map[j][i]
+		    print tile
+		except IndexError:
+		    continue
+		if tile is None:
+		    continue
+		cx, cy = tile
+		view.blit(self.tiles, (x, y), (cx, cy, 80, 80))
+
 class Player:
     def __init__(self, image, x, y, speed, level):
         self.image = image
@@ -94,21 +126,18 @@ def stage1_main(screen, weapon_type):
     #player, background image load set
     player_image = load_image("player.bmp").convert_alpha()
     map_image = load_image("background.png").convert_alpha()
-    
+    map = Map('map.txt', 'tiles.png')
+    viewpos = (0,0)
+
     #player, background create
     	#플레이어 기본 이미지, 시작 좌표, 기본 이속, 기본 무기 레벨
     player = Player(player_image, x=0, y=440, speed=2, level=1)
 	#맵 기본 이미지, 시작 좌표, 맵 이동속도
-    stage_1 = Map(map_image, x=0, y=0, speed=1)
     
     jumping = False
     jumpingHorz = 0
 
     while 1:
-
-        stage_1.draw(screen)
-
-
         for event in pygame.event.get():
             if event.type == QUIT:
                 pygame.quit()
@@ -148,8 +177,8 @@ def stage1_main(screen, weapon_type):
         if player.pos_x < 0:
             player.pos_x = 0
 
-
-
+	map.draw(screen, viewpos)
+	print " ---- "	
         pygame.display.update()
 
     
