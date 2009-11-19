@@ -29,7 +29,6 @@ def load_image(name, colorkey=None):
         image.set_colorkey(colorkey, RLEACCEL)
     return image
 
- 
 class Map:
     def __init__(self, map, tiles):
 	self.tiles = load_image(tiles)	
@@ -48,10 +47,15 @@ class Map:
                     tile = random.choice(tile)
 		cx, cy = tile
 		self.map[j][i] = (cx, cy)
+    def limt(self, object):
+        if object.pos_x < 0:
+            object.pos_x = 0
+	elif object.pos_x > 770:
+	    object.pos_x = 770
 
     def draw(self, view, viewpos):
 	sx, sy = view.get_size()
-	bx = viewpos[0]/80
+	bx = viewpos[0]/80 
 	by = viewpos[1]/80
 	for x in range(0, sx+80, 80):
 	    i = x/80 + bx
@@ -67,7 +71,7 @@ class Map:
 		view.blit(self.tiles, (x, y), (cx, cy, 80, 80))
 
 class Player:
-    def __init__(self, image, x, y, speed, level):
+    def __init__(self, image, playerpos, speed, level):
         self.image = image
 
 	self.margin = 5
@@ -78,14 +82,13 @@ class Player:
 
 	self.we_lev = level 
 
-        self.pos_x = x
-        self.pos_y = y
+        self.pos_x, self.pos_y = playerpos
     	
 
         self.soul = 0
 
     def draw(self, view):
-        view.blit(self.image, (self.pos_x,self.pos_y))
+        view.blit(self.image, (self.pos_x, self.pos_y))
 
     #착지 Y좌표 찾기~
     def floorY(self, screen):
@@ -95,30 +98,6 @@ class Player:
     def jumpHeightAtTime(self, elapsedTime):
 	return ((-1.0/self.time_at_peak**2)*((elapsedTime-self.time_at_peak)**2)+1)*self.jump_height
 
-    #공격!
-    def attack(self, view, weapon):
-	if self.we_lev == 1: #1단계
-	    image_att = load_image("attack_"+weapon+"_1.png").convert_alpha()
- 	    view.blit(image_att, (self.pos_x, self.pos_y))
-
-	elif self.we_lev == 2: #2단계
-	    image_att = load_image("attack_"+weapon+"_2.png").convert_alpha()
- 	    view.blit(image_att, (self.pos_x, self.pos_y))	
-
-	elif self.we_lev == 3: #3단계
-	    image_att = load_image("attack_"+weapon+"_3.png").convert_alpha()
- 	    view.blit(image_att, (self.pos_x, self.pos_y))
-
-	elif self.we_lev == 4: #4단계
-	    image_att = load_image("attack_"+weapon+"_4.png").convert_alpha()
- 	    view.blit(image_att, (self.pos_x, self.pos_y))
-
-	else:
-   	    image_att = load_image("attack_"+weapon+"_1.png").convert_alpha()
- 	    view.blit(image_att, (self.pos_x, self.pos_y))
-    def skill(self, view, weapon):
-	print "스킬발동!"
-	
 
 def stage1_main(screen, weapon_type):
     #pygame init
@@ -129,12 +108,11 @@ def stage1_main(screen, weapon_type):
     map_image = load_image("background.png").convert_alpha()
     map = Map('map.txt', 'tiles.png')
     viewpos = (0,0)
-
+    playerpos = (0, 440) 
     #player, background create
     	#플레이어 기본 이미지, 시작 좌표, 기본 이속, 기본 무기 레벨
-    player = Player(player_image, x=0, y=440, speed=2, level=1)
-	#맵 기본 이미지, 시작 좌표, 맵 이동속도
-    x = 0 
+    player = Player(player_image, playerpos, speed=2, level=1)
+    
     jumping = False
     jumpingHorz = 0
 
@@ -144,7 +122,7 @@ def stage1_main(screen, weapon_type):
             if event.type == QUIT:
                 pygame.quit()
                 sys.exit()
-	
+	playerpos = (player.pos_x, player.pos_y)
 	keys = pygame.key.get_pressed()
 
 	#좌우로 움직이기
@@ -155,8 +133,6 @@ def stage1_main(screen, weapon_type):
 	# 점프 했나요?
         if not jumping:
 	    player.pos_x += horzMoveAmt()
-    	    x += horzMoveAmt()
-	    viewpos = (x, 0)
             if keys[K_SPACE]:
                 jumping = True
                 jumpingHorz = horzMoveAmt()
@@ -172,19 +148,10 @@ def stage1_main(screen, weapon_type):
             player.pos_y = player.floorY(screen) - jumpHeight
             player.pos_x += jumpingHorz
 
-	# 공격 했나요?
-	if keys[K_z]:
-	    player.attack(screen, weapon_type)
-	else:
-            player.draw(screen)
-
-        if player.pos_x < 0 and x < 0:
-            player.pos_x = 0
-	    x = 0	
-	elif player.pos_x > 770 and x > 770:
-	    player.pos_x = 770
-	    x = 770
-
+        player.draw(screen)
+	
+	map.limt(player)	
+	print playerpos
 	map.draw(screen, viewpos)
         pygame.display.update()
 
