@@ -19,14 +19,13 @@ def main():
     
     #title set
     pygame.display.set_caption('Rabbit Hazard') 
-    
-    print 'Stage number is', stage
-
     weapon_type = "gun"
-
+    game_status = True
     #call stage1.main
-    if stage == 1:
-        stage1.stage1_main(screen, weapon_type)
+    while game_status:
+    	if stage == 1:
+           game_status = stage1.stage1_main(screen, weapon_type)
+
 
 if __name__ == '__main__':
     main()

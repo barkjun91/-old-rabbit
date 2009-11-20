@@ -47,14 +47,15 @@ class Map:
                     tile = random.choice(tile)
 		cx, cy = tile
 		self.map[j][i] = (cx, cy)
+
     def limt(self, object):
         if object.pos_x < 0:
             object.pos_x = 0
 	elif object.pos_x > 770:
 	    object.pos_x = 770
 
-    def draw(self, view, viewpos):
-	sx, sy = view.get_size()
+    def draw(self, view, viewpos, camera):
+	sx, sy = (self.width, 600)
 	bx = viewpos[0]/80 
 	by = viewpos[1]/80
 	for x in range(0, sx+80, 80):
@@ -68,7 +69,14 @@ class Map:
 		if tile is None:
 		    continue
 		cx, cy = tile
-		view.blit(self.tiles, (x, y), (cx, cy, 80, 80))
+		view.blit(self.tiles, (x-camera.px, y-camera.py), (cx, cy, 80, 80))
+
+class Camera:
+    def __init__(self, view):
+	x, y = view.get_size()
+	self.view_posx, self.view_posy = (x/2, y/2)
+	self.px, self.py = (0,0)
+  
 
 class Player:
     def __init__(self, image, playerpos, speed, level):
@@ -76,19 +84,14 @@ class Player:
 
 	self.margin = 5
 	self.jumping_duration = 500
-	self.horz_move = speed
+	self.speed = speed
 	self.time_at_peak = self.jumping_duration / 2
 	self.jump_height = 100
-
 	self.we_lev = level 
-
         self.pos_x, self.pos_y = playerpos
-    	
-
         self.soul = 0
 
-    def draw(self, view):
-        view.blit(self.image, (self.pos_x, self.pos_y))
+
 
     #착지 Y좌표 찾기~
     def floorY(self, screen):
@@ -98,45 +101,60 @@ class Player:
     def jumpHeightAtTime(self, elapsedTime):
 	return ((-1.0/self.time_at_peak**2)*((elapsedTime-self.time_at_peak)**2)+1)*self.jump_height
 
+    def horzMoveAmt(self, keys, object):
+        return (keys[K_RIGHT] - keys[K_LEFT]) * object.speed
+
+    def draw(self, view):
+        view.blit(self.image, (self.pos_x, self.pos_y))
+
 
 def stage1_main(screen, weapon_type):
-    #pygame init
-    pygame.init()    
-
-    #player, background image load set
-    player_image = load_image("player.bmp").convert_alpha()
-    map_image = load_image("background.png").convert_alpha()
-    map = Map('map.txt', 'tiles.png')
+    pygame.init()
     viewpos = (0,0)
-    playerpos = (0, 440) 
-    #player, background create
-    	#플레이어 기본 이미지, 시작 좌표, 기본 이속, 기본 무기 레벨
-    player = Player(player_image, playerpos, speed=2, level=1)
-    
+    playerpos = (0, 440)
     jumping = False
     jumpingHorz = 0
+    game_status = True
 
-    while 1:
+# --------------------- image load ---------------------------- 
+    player_image = load_image("player.bmp").convert_alpha()
+    map_image = load_image("background.png").convert_alpha()
+
+# ------------------- Create Object ---------------------------- 
+    player = Player(player_image, playerpos, speed=2, level=1)
+    map = Map('map.txt', 'tiles.png')
+    camera = Camera(screen)
+
+# -------------------- Start Game -----------------------------    
+    while game_status:
 	screen.fill((255,255,255))
         for event in pygame.event.get():
             if event.type == QUIT:
                 pygame.quit()
                 sys.exit()
-	playerpos = (player.pos_x, player.pos_y)
 	keys = pygame.key.get_pressed()
-
-	#좌우로 움직이기
-        def horzMoveAmt():
-            ''' Amount of horizontal movement based on left/right arrow keys '''
-            return (keys[K_RIGHT] - keys[K_LEFT]) * player.horz_move
-
-	# 점프 했나요?
+    # ------------------------ player move ------------------
         if not jumping:
-	    player.pos_x += horzMoveAmt()
+	    if player.pos_x < camera.view_posx or camera.px < 0:
+		print "a"
+	 	player.pos_x += player.horzMoveAmt(keys, player)
+		if camera.px < 0:
+		    camera.px = 0
+	    if camera.view_posx <= camera.px+player.pos_x <= map.width-camera.view_posx:
+		print "b"
+		if player.pos_x < 400:
+		    player.pos_x = 400
+		camera.px += player.horzMoveAmt(keys, player)
+	    if map.width-camera.view_posx < camera.view_posx + camera.px:
+		print "c"
+		player.pos_x += player.horzMoveAmt(keys, player)
+
             if keys[K_SPACE]:
                 jumping = True
-                jumpingHorz = horzMoveAmt()
+                jumpingHorz = player.horzMoveAmt(keys, player)
                 jumpingStart = pygame.time.get_ticks()
+    # ---------------------- jumping -----------------------
+
         if jumping:
             t = pygame.time.get_ticks() - jumpingStart
             if t > player.jumping_duration:
@@ -146,15 +164,18 @@ def stage1_main(screen, weapon_type):
                 jumpHeight = player.jumpHeightAtTime(t)
  
             player.pos_y = player.floorY(screen) - jumpHeight
-            player.pos_x += jumpingHorz
+	    if player.pos_x < camera.view_posx or camera.px < 0:
+	        player.pos_x += jumpingHorz
+	    else:
+		camera.px += jumpingHorz
 
+# -------------------------------------------------------
+	map.limt(player)
+# ------------------------ Drawing ----------------------	
         player.draw(screen)
-	
-	map.limt(player)	
-	print playerpos
-	map.draw(screen, viewpos)
+	map.draw(screen, viewpos, camera)
         pygame.display.update()
-
+# -------------------------------------------------------
     
 if __name__ == '__main__':
     main()
