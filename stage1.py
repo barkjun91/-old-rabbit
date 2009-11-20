@@ -166,6 +166,8 @@ def stage1_main(screen, weapon_type):
             player.pos_y = player.floorY(screen) - jumpHeight
 	    if player.pos_x < camera.view_posx or camera.px < 0:
 	        player.pos_x += jumpingHorz
+	    elif map.width-camera.view_posx < camera.view_posx + camera.px:
+		player.pos_x += jumpingHorz
 	    else:
 		camera.px += jumpingHorz
 
