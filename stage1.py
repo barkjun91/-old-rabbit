@@ -14,6 +14,11 @@ tile_coords = {
     '.': None,
 }
 
+map_info = {
+    'up_1': 320,
+    'down_1': 560,
+}
+
 #load image. where? = main/data/stage1/~
 def load_image(name, colorkey=None):
     fullname = os.path.join('data/stage1', name)
@@ -70,13 +75,21 @@ class Map:
 		    continue
 		cx, cy = tile
 		view.blit(self.tiles, (x-camera.px, y-camera.py), (cx, cy, 80, 80))
+    def info(self, keys, player, camera):
+	if map_info['up_1']-27 <= player.pos_x+camera.px <= map_info['up_1']+80-27:
+	    player.pos_y -= player.horzMoveAmt(keys, player)
+	if map_info['down_1']+27 <= player.pos_x+camera.px <= map_info['down_1']+80+27:
+	    player.pos_y += player.horzMoveAmt(keys, player)
+	    
+
+	
 
 class Camera:
     def __init__(self, view):
 	x, y = view.get_size()
 	self.view_posx, self.view_posy = (x/2, y/2)
 	self.px, self.py = (0,0)
-  
+
 
 class Player:
     def __init__(self, image, playerpos, speed, level):
@@ -94,9 +107,8 @@ class Player:
 
 
     #착지 Y좌표 찾기~
-    def floorY(self, screen):
-	return  screen.get_height()-self.image.get_height()-self.margin-130
-
+    def floorY(self, screen, py):
+	return py
     #점프에 걸리는 시간 조절(왠만해선 건들지 말것!)
     def jumpHeightAtTime(self, elapsedTime):
 	return ((-1.0/self.time_at_peak**2)*((elapsedTime-self.time_at_peak)**2)+1)*self.jump_height
@@ -136,21 +148,19 @@ def stage1_main(screen, weapon_type):
     # ------------------------ player move ------------------
         if not jumping:
 	    if player.pos_x < camera.view_posx or camera.px < 0:
-		print "a"
 	 	player.pos_x += player.horzMoveAmt(keys, player)
 		if camera.px < 0:
 		    camera.px = 0
 	    if camera.view_posx <= camera.px+player.pos_x <= map.width-camera.view_posx:
-		print "b"
 		if player.pos_x < 400:
 		    player.pos_x = 400
 		camera.px += player.horzMoveAmt(keys, player)
 	    if map.width-camera.view_posx < camera.view_posx + camera.px:
-		print "c"
 		player.pos_x += player.horzMoveAmt(keys, player)
-
+	    map.info(keys, player, camera)
             if keys[K_SPACE]:
                 jumping = True
+		py = player.pos_y
                 jumpingHorz = player.horzMoveAmt(keys, player)
                 jumpingStart = pygame.time.get_ticks()
     # ---------------------- jumping -----------------------
@@ -163,15 +173,13 @@ def stage1_main(screen, weapon_type):
             else:
                 jumpHeight = player.jumpHeightAtTime(t)
  
-            player.pos_y = player.floorY(screen) - jumpHeight
+            player.pos_y = player.floorY(screen, py) - jumpHeight
 	    if player.pos_x < camera.view_posx or camera.px < 0:
 	        player.pos_x += jumpingHorz
 	    elif map.width-camera.view_posx < camera.view_posx + camera.px:
 		player.pos_x += jumpingHorz
 	    else:
 		camera.px += jumpingHorz
-
-# -------------------------------------------------------
 	map.limt(player)
 # ------------------------ Drawing ----------------------	
         player.draw(screen)
